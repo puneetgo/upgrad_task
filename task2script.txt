@@ -1,0 +1,32 @@
+#!/bin/bash
+while read package
+do
+apt update -y
+
+if ! which command > /dev/null; then
+   echo -e "Command not found! Install? (y/n) \c"
+   read
+   if "$REPLY" = "y"; then
+      sudo apt-get install command
+   fi
+fi
+
+
+# Script to check if apache service is running
+
+if pgrep -x "apache2" > /dev/null
+then
+   echo "apache2 is running"
+else
+   echo "apache2 is not running"
+fi
+
+# Script to  ensures that HTTP Apache service is enabled
+
+if ! pidof apache2 > /dev/null
+then
+    # web server down, restart the server
+    echo "Server down"
+    /etc/init.d/apache2 restart > /dev/null
+    sleep 10
+fi

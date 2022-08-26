@@ -1,0 +1,27 @@
+#!/bin/bash
+
+LOG_SOURCE="/var/log/apache"                               
+LOG_DESTINATION="/var/www/html/inventory.html"                                 
+
+
+# That directory probably exists already but let us say it doesn't
+mkdir -p "$LOG_DESTINATION"
+
+find "$LOG_SOURCE" -type d -regextype gnu-awk -regex "$LOG_SOURCE/[[:digit:]]{4}/[[:digit:]]{2}/[[:digit:]]{2}" \
+    | sed -r -n 's#^.*([0-9]{4})/([0-1][0-9])/([0-3][0-9])$#\1 \2 \3#p' \
+    | while read Y M D; do
+        if [[ "$Y$M$D" < $(date "+%Y%m%d" -d "$ARCHIVE_AFTER days ago") ]]
+        then
+            logArchiveSrcDirectory="$LOG_SOURCE/$Y/$M/$D"
+            logArchiveDstZipFile="$LOG_DESTINATION/"$Y"_"$M"_"$D".zip"
+
+            echo $logArchiveSrcDirectory
+            echo $logArchiveDstZipFile
+
+            if zip -r  "$logArchiveDstZipFile" "$logArchiveSrcDirectory"
+            then
+                rm -r "$logArchiveSrcDirectory"
+            fi
+
+        fi
+    done 
